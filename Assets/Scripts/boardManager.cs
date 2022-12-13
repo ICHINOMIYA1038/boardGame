@@ -8,6 +8,7 @@ public class boardManager : MonoBehaviour
 {
     GameObject[] eachPanels;
     eachPanelController[] panelControllers;
+    int pOrder = 1;
     int order;
     int[,] boardArray;
     Button[] btns;
@@ -17,6 +18,9 @@ public class boardManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI msg;
     [SerializeField] TextMeshProUGUI endMsg;
     [SerializeField]bool[] canPlace;
+    [SerializeField] int GameMode;
+    [SerializeField] GameObject basePanel;
+    CPU cpu;
 
 
     // Start is called before the first frame update
@@ -28,15 +32,19 @@ public class boardManager : MonoBehaviour
         eachPanels = GameObject.FindGameObjectsWithTag("eachPanel");
         panelControllers = new eachPanelController[64];
         canPlace = new bool[64];
-        
-        
-        for(int i = 0; i < eachPanels.Length; i++)
+        for (int i = 0; i < eachPanels.Length; i++)
+        {
+            eachPanels[i] = basePanel.transform.GetChild(i).gameObject;
+        }
+
+
+            for (int i = 0; i < eachPanels.Length; i++)
         {
             panelControllers[i] = eachPanels[i].GetComponent<eachPanelController>();
             btns[i] = eachPanels[i].GetComponentInChildren<Button>();
             //????????????????????????????????
             int tmp = i;
-            btns[i].onClick.AddListener( () => { place(tmp / 8, tmp % 8, order); });
+            btns[i].onClick.AddListener( () => { StartCoroutine(place(tmp / 8, tmp % 8, order)); });
             
         }
         boardArray = new int[8,8];
@@ -48,6 +56,14 @@ public class boardManager : MonoBehaviour
         predictNum();
         enableBtn();
         placeAssist();
+        if (pOrder == 1)
+        {
+            cpu = new CPU(2);
+        }
+        else if (pOrder == 2)
+        {
+            cpu = new CPU(1);
+        }
         /*
         for(int i=0; i<64; i++)
         {
@@ -71,6 +87,16 @@ public class boardManager : MonoBehaviour
             {
                 btns[i].enabled = false;
             }
+        }
+    }
+
+    public void unableBtn()
+    {
+        for (int i = 0; i < 64; i++)
+        {
+
+                btns[i].enabled = false;
+
         }
     }
 
@@ -107,24 +133,49 @@ public class boardManager : MonoBehaviour
         panelControllers[column * 8 + row].changeColor(type);
     }
 
-    void place(int column, int row, int type)
+    IEnumerator place(int column, int row, int type)
     {
-
+        cpu.addStack(column * 8 + row);
         boardArray[column, row] = type;
-        panelControllers[column * 8 + row].changeColor(type);
+        panelControllers[column * 8 + row].Place(type);
+        unableBtn();
+        placeAssistInvisible();
         int target=0;
         if(type == 1){ target = 2; }
         if (type == 2) { target = 1; }
+        yield return new WaitForSeconds(0.2f);
         calculateNum(column, row, type);
         flip(type);
         clearData();
         orderChange();
         calculate();
         predictNum();
-        enableBtn();
-        placeAssist();
+        
         skipCheck();
+        if(endMsg.enabled == true)
+        {
+            yield break;
+        }
+        else if (GameMode == 1&&order!=pOrder)
+        {
+            Debug.Log("AITurn");
+            cpu.updateArray(boardArray);
+            int[] position;
+            position = new int[2];
+            position = cpu.place();
+            StartCoroutine(AIPlace(position[0], position[1], order));
+        }
+        else
+        {
+            placeAssist();
+            enableBtn();
+        }
+    }
 
+    IEnumerator AIPlace(int row ,int column, int order)
+    {
+        yield return new WaitForSeconds(0.8f);
+        StartCoroutine(place(row, column, order));
     }
 
     void flip(int index)
@@ -137,6 +188,7 @@ public class boardManager : MonoBehaviour
         }
         
     }
+
 
     void skipCheck()
     {
@@ -252,6 +304,21 @@ public class boardManager : MonoBehaviour
                 {
                     panelControllers[i].changeColor(0);
                 }
+
+            }
+        }
+    }
+
+    void placeAssistInvisible()
+    {
+        for (int i = 0; i < 64; i++)
+        {
+            int target = panelControllers[i].getStatus();
+            if (target == 0 || target == 3)
+            {
+
+                    panelControllers[i].changeColor(0);
+                
 
             }
         }
@@ -482,5 +549,11 @@ public class boardManager : MonoBehaviour
         }
     }
 
+    IEnumerator waitTimer(float time)
+    {
+        unableBtn();
+        yield return new WaitForSeconds(time);
+        enableBtn();
+    }
     
 }
