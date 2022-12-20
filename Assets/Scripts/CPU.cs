@@ -5,6 +5,7 @@ using UnityEngine;
 public class CPU : MonoBehaviour
 {
     int[,] boardArray;
+    bool[] canPlace;
     int blackNum = 0;
     int whiteNum = 0;
     int blankNum = 0;

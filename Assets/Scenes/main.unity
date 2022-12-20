@@ -15850,6 +15850,8 @@ MonoBehaviour:
   msg: {fileID: 1960071060}
   endMsg: {fileID: 1195053285}
   canPlace: 
+  GameMode: 0
+  basePanel: {fileID: 1955389152}
 --- !u!1 &975654610
 GameObject:
   m_ObjectHideFlags: 0
@@ -31185,8 +31187,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04ccee89a62be96459f450d8163298e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  eachPanel: []
-  panelPrefab: {fileID: 6496962345812859490, guid: 0ced692c99cd4794cb4ccbdabe532e4f, type: 3}
 --- !u!114 &1955389155
 MonoBehaviour:
   m_ObjectHideFlags: 0
